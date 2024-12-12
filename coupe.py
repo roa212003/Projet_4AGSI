@@ -6,7 +6,11 @@ import random
 # Lớp CoupeEliminatoire
 class CoupeEliminatoire:
     def __init__(self, equipes):
-        self.equipes = [Equipe(nom) for nom in equipes]
+        # Chuyển chuỗi thành đối tượng Equipe nếu cần
+        if isinstance(equipes[0], str):  # Nếu danh sách chứa chuỗi
+            self.equipes = [Equipe(nom) for nom in equipes]
+        else:  # Nếu đã là đối tượng Equipe
+            self.equipes = equipes
         self.rounds = []
         self.winners = []
         self.generer_rencontres()
@@ -38,15 +42,13 @@ def main_coupe_with_teams(root, top_teams):
 
 # Chỉnh sửa Application để nhận CoupeEliminatoire
 class Application(tk.Tk):
-    def __init__(self, coupe_instance=None):
+    def __init__(self, master,callback = None):
         super().__init__()
         self.title("Gestion de Coupe Eliminatoire")
-        if coupe_instance:
-            self.coupes = coupe_instance
-            self.show_score_input()
-        else:
-            self.equipes = []
-            self.show_team_input()
+        self.callback = callback
+        self.master = master
+        self.equipes = []
+        self.show_team_input()
 
     def show_team_input(self):
         self.frame_team_input = tk.Frame(self)
@@ -136,14 +138,27 @@ class Application(tk.Tk):
             self.show_winner()
 
     def show_winner(self):
+        """Hiển thị đội thắng và hỏi người dùng có muốn chơi giải đấu mới không."""
         if len(self.coupes.winners) == 1:
             winner = self.coupes.winners[0]
             messagebox.showinfo("Gagnant", f"L'équipe gagnante est {winner.nom}!")
-        else:
-            messagebox.showerror("Erreur", "Impossible de déterminer le gagnant.")
 
+            # Hỏi người dùng có muốn bắt đầu giải đấu mới không
+            result = messagebox.askyesno("Nouvelle compétition", "Vous voulez commencer un autre tournoi ?")
+
+            if result:  # Nếu người dùng chọn "Có"
+                self.destroy()  # Đóng cửa sổ hiện tại
+                self.return_to_main_menu()
+            else:  # Nếu người dùng chọn "Không"
+                self.quit()  # Thoát chương trình
+
+    def return_to_main_menu(self):
+        """Quay lại menu chính."""
+        if self.callback:
+            #self.master.destroy()  # Hủy cửa sổ hiện tại
+            self.callback()  # Gọi menu chính
 
 # Hàm main khởi tạo ứng dụng
-def main_coupe(root):
-    app = Application()
+def main_coupe(root,callback=None): # Khởi tạo giải đấu loại trực tiếp
+    app = Application(root, callback)
     app.mainloop()

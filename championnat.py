@@ -47,6 +47,7 @@ class Application(tk.Frame):
         self.callback = callback
         self.pack()
         self.show_team_input()
+        self.d=0
 
 
     def show_team_input(self):
@@ -103,6 +104,10 @@ class Application(tk.Frame):
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scroll_y.set)
 
+        button = tk.Button(self, text="Finir le championnat", command=self.finir_championnat)
+        button.grid(row=1, column=1, columnspan=2, pady=10)
+        button.config(state=tk.DISABLED)
+
         # Thêm các trận đấu vào giao diện cuộn
         for idx, (equipe1, equipe2) in enumerate(self.championnat.rencontres):
             tk.Label(scrollable_frame, text=f"{equipe1.nom} vs {equipe2.nom}").grid(row=idx, column=0, padx=5, pady=5)
@@ -113,7 +118,7 @@ class Application(tk.Frame):
             entry_score2.grid(row=idx, column=3, padx=5)
             button_submit = tk.Button(scrollable_frame, text="Submit",
                                       command=lambda e1=equipe1, e2=equipe2, s1=entry_score1,
-                                                     s2=entry_score2: self.submit_score(e1, e2, s1, s2))
+                                                     s2=entry_score2: self.submit_score(e1, e2, s1, s2,button))
             button_submit.grid(row=idx, column=4, padx=5)
 
         canvas.grid(row=0, column=0, sticky="news")
@@ -122,13 +127,17 @@ class Application(tk.Frame):
         tk.Button(self, text="Afficher Classement", command=self.afficher_classement).grid(row=1, column=0,
                                                                                            columnspan=2, pady=10)
 
-    def submit_score(self, equipe1, equipe2, entry_score1, entry_score2):
+
+    def submit_score(self, equipe1, equipe2, entry_score1, entry_score2,button):
         try:
             score1 = int(entry_score1.get())
             score2 = int(entry_score2.get())
             self.championnat.maj_statistiques_match(equipe1, equipe2, score1, score2)
             entry_score1.config(state="disabled")
             entry_score2.config(state="disabled")
+            self.d += 1
+            if self.d == len(self.championnat.rencontres):
+                button.config(state="normal")
         except ValueError:
             messagebox.showerror("Erreur", "Veuillez entrer des scores valides.")
 
@@ -143,18 +152,24 @@ class Application(tk.Frame):
             classement += f"{i}. {equipe}\n"
         messagebox.showinfo("Classement", classement)
 
+    def finir_championnat(self):
+        result = messagebox.askyesno("Nouvelle compétition", "Vous voulez commencer un autre tournoi ?")
+
+        if result:  # Nếu người dùng chọn "Có"
+            self.destroy()  # Đóng cửa sổ hiện tại
+            self.return_to_main_menu()
+        else:  # Nếu người dùng chọn "Không"
+            self.quit()  # Thoát chương trình
     def run(self):
         """Chạy ứng dụng mà không gọi mainloop trực tiếp"""
         self.show_team_input()  # Hiển thị giao diện nhập đội
 
     def return_to_main_menu(self):
         """Quay lại menu chính."""
-        if self.callback:
-            self.master.destroy()  # Hủy cửa sổ hiện tại
+        if self.callback:# Hủy cửa sổ hiện tại
             self.callback()  # Gọi menu chính
 
 
-def main_championnat(root, callback=None):
+def main_championnat(root, callback=None): # Khởi tạo giải đấu
     app = Application(root, callback)
     app.mainloop()
-

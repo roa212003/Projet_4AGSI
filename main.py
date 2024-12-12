@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk  # Cần cài đặt Pillow: pip install pillow
 import championnat
 import coupe
 import csv
@@ -44,6 +45,13 @@ def main():
 
     root = tk.Tk()
     root.title("Gestion des championnats et coupes")
+    root.geometry("1000x560")
+    # Load ảnh nền
+    bg_img = Image.open("a.png")  # Đường dẫn tới ảnh nền
+    bg_img = bg_img.resize((1000, 560), Image.Resampling.LANCZOS)  # Sử dụng Resampling.LANCZOS
+    bg_image = ImageTk.PhotoImage(bg_img)
+
+
     show_main_menu()
     root.mainloop()
 
